@@ -3,16 +3,18 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 17
 VisualStudioVersion = 17.10.34928.147
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solvify.Cli", "Solvify.Cli\Solvify.Cli.csproj", "{4544A292-A192-47B1-9565-DBD2F4B1EC15}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Solvify.Cli", "Solvify.Cli\Solvify.Cli.csproj", "{4544A292-A192-47B1-9565-DBD2F4B1EC15}"
 EndProject
 Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{36B5A321-A2A0-4EA5-8CAC-7D028D48038C}"
 	ProjectSection(SolutionItems) = preProject
+		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
-		Solvify.sln.DotSettings = Solvify.sln.DotSettings
 	EndProjectSection
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solvify.Cli.Test", "Solvify.Cli.Test\Solvify.Cli.Test.csproj", "{E94EBE75-1C33-4B04-BD59-9FC07CBFACFC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -24,6 +26,10 @@ Global
 		{4544A292-A192-47B1-9565-DBD2F4B1EC15}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4544A292-A192-47B1-9565-DBD2F4B1EC15}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4544A292-A192-47B1-9565-DBD2F4B1EC15}.Release|Any CPU.Build.0 = Release|Any CPU
+		{E94EBE75-1C33-4B04-BD59-9FC07CBFACFC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{E94EBE75-1C33-4B04-BD59-9FC07CBFACFC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{E94EBE75-1C33-4B04-BD59-9FC07CBFACFC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{E94EBE75-1C33-4B04-BD59-9FC07CBFACFC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
