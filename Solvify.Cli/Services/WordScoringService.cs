@@ -1,6 +1,7 @@
-﻿using System.Collections.Generic;
+﻿using Solvify.Cli.Records;
+using Solvify.Cli.Services.Interfaces;
+using System.Collections.Generic;
 using System.Linq;
-using Solvify.Cli.Records;
 
 namespace Solvify.Cli.Services;
 
@@ -8,7 +9,7 @@ namespace Solvify.Cli.Services;
 ///     Represents a class for scoring characters based on their frequency in a collection of words the class was
 ///     initialized with.
 /// </summary>
-public class WordScoringService
+public class WordScoringService : IWordScoringService
 {
     private readonly Dictionary<char, ScoredCharacter> characters = [];
     private readonly string scoredCharacters;
@@ -18,22 +19,32 @@ public class WordScoringService
         this.scoredCharacters = scoredCharacters;
 
         foreach (string word in words)
+        {
             foreach (char c in word.ToLower())
+            {
                 if (characters.TryGetValue(c, out ScoredCharacter? character))
+                {
                     character.Count++;
+                }
                 else
+                {
                     characters.Add(c,
                                    new ScoredCharacter
                                    {
                                        Character = c,
                                        Count = 0
                                    });
+                }
+            }
+        }
 
         List<ScoredCharacter> orderedCharacters = characters.Values.OrderBy(x => x.Count)
                                                             .ToList();
 
         for (int i = 0; i < orderedCharacters.Count; i++)
+        {
             orderedCharacters[i].Score = i + 1;
+        }
     }
 
     /// <summary>
@@ -44,14 +55,13 @@ public class WordScoringService
     /// <returns>The score of the word, based on the words the CharacterScoring was initialised with</returns>
     public int GetScore(string word, string noScoreCharacters)
     {
-        if (word.ToLower()
+        return word.ToLower()
                 .All(x => scoredCharacters.ToLower()
-                                          .Contains(x)))
-            return word.ToLower()
+                                          .Contains(x))
+            ? word.ToLower()
                        .Where(x => !noScoreCharacters.Contains(x))
                        .Distinct()
-                       .Sum(x => characters[x].Score);
-
-        return 0;
+                       .Sum(x => characters[x].Score)
+            : 0;
     }
 }

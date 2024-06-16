@@ -1,8 +1,8 @@
-﻿using System;
+﻿using Solvify.Cli.Records;
+using Solvify.Cli.Services;
+using System;
 using System.Collections.Generic;
 using System.IO;
-using Solvify.Cli.Records;
-using Solvify.Cli.Services;
 
 namespace Solvify.Cli;
 
@@ -14,7 +14,9 @@ public class Program
 
         List<string> wordList = ReadWordlistFile("wordlist.txt");
 
-        DeductWordService solver = new DeductWordService(maximumCharacters, wordList);
+        //string validCharacters = "abcdefghijklmnopqrstuvwxyz"; // 6mal5
+        string validCharacters = "abcdefghijklmnopqrstuvwxyzüöäß"; // wördle
+        DeductWordService solver = new(maximumCharacters, wordList, validCharacters);
 
         while (solver.GetLastGuessingResult != DeductWordService.GuessingResult.Win)
         {
@@ -28,10 +30,12 @@ public class Program
     private static List<string> ReadWordlistFile(string filename)
     {
         List<string> wordList = [];
-        using StreamReader reader = new StreamReader(filename);
+        using StreamReader reader = new(filename);
 
         while (!reader.EndOfStream)
+        {
             wordList.Add(reader.ReadLine() ?? throw new ArgumentException());
+        }
 
         return wordList;
     }
