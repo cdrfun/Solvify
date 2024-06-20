@@ -11,35 +11,31 @@ namespace Solvify.Cli.Services;
 /// </summary>
 public class WordScoringService : IWordScoringService
 {
-    private readonly Dictionary<char, ScoredCharacter> characters = [];
-    private readonly string scoredCharacters;
+    private readonly Dictionary<char, ScoredCharacter> _characters = [];
+    private readonly string _scoredCharacters;
 
     public WordScoringService(IEnumerable<string> words, string scoredCharacters)
     {
-        this.scoredCharacters = scoredCharacters;
+        _scoredCharacters = scoredCharacters;
 
         foreach (string word in words)
         {
             foreach (char c in word.ToLower())
             {
-                if (characters.TryGetValue(c, out ScoredCharacter? character))
+                if (_characters.TryGetValue(c, out ScoredCharacter? character))
                 {
                     character.Count++;
                 }
                 else
                 {
-                    characters.Add(c,
-                                   new ScoredCharacter
-                                   {
-                                       Character = c,
-                                       Count = 0
-                                   });
+                    _characters.Add(c,
+                        new ScoredCharacter { Character = c, Count = 0 });
                 }
             }
         }
 
-        List<ScoredCharacter> orderedCharacters = characters.Values.OrderBy(x => x.Count)
-                                                            .ToList();
+        List<ScoredCharacter> orderedCharacters = _characters.Values.OrderBy(x => x.Count)
+            .ToList();
 
         for (int i = 0; i < orderedCharacters.Count; i++)
         {
@@ -56,12 +52,12 @@ public class WordScoringService : IWordScoringService
     public int GetScore(string word, string noScoreCharacters)
     {
         return word.ToLower()
-                .All(x => scoredCharacters.ToLower()
-                                          .Contains(x))
+            .All(x => _scoredCharacters.ToLower()
+                .Contains(x))
             ? word.ToLower()
-                       .Where(x => !noScoreCharacters.Contains(x))
-                       .Distinct()
-                       .Sum(x => characters[x].Score)
+                .Where(x => !noScoreCharacters.Contains(x))
+                .Distinct()
+                .Sum(x => _characters[x].Score)
             : 0;
     }
 }

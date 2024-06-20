@@ -1,4 +1,5 @@
 ﻿using Solvify.Cli.Records;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.RegularExpressions;
@@ -21,28 +22,29 @@ public class DeductWordService
     private const char NoMatchChar = '-';
     private const char PositionalMatchChar = '*';
 
-    private readonly List<string> invalidWordList = [];
-    private readonly Dictionary<int, char> inWord = [];
-    private readonly Dictionary<int, char> positionalMatches = [];
-    private readonly WordScoringService scoringService;
-    private readonly int wordLength;
-    private readonly List<string> wordlist;
-    private ScoredWord? currentGuess;
-    private string noMatch = string.Empty;
-    private readonly string validCharacters = string.Empty;
+    private readonly List<string> _invalidWordList = [];
+    private readonly Dictionary<int, char> _inWord = [];
+    private readonly Dictionary<int, char> _positionalMatches = [];
+    private readonly WordScoringService _scoringService;
+    private readonly string _validCharacters;
+    private readonly int _wordLength;
+    private readonly List<string> _wordlist;
+
+    private ScoredWord? _currentGuess;
+    private string _noMatch = string.Empty;
 
     public DeductWordService(int wordLength, List<string> wordlist, string validCharacters)
     {
-        this.validCharacters = validCharacters;
-        scoringService = new WordScoringService(wordlist.Where(x => x.Length == wordLength), validCharacters);
-        this.wordLength = wordLength;
-        this.wordlist = wordlist;
+        _validCharacters = validCharacters;
+        _scoringService = new WordScoringService(wordlist.Where(x => x.Length == wordLength), validCharacters);
+        _wordLength = wordLength;
+        _wordlist = wordlist;
     }
-
+    
     public int GetGuessCount { get; private set; }
 
     public GuessingResult GetLastGuessingResult { get; private set; } = GuessingResult.Processed;
-
+    
     /// <summary>
     ///     Add and process the result of the current guess
     /// </summary>
@@ -56,42 +58,31 @@ public class DeductWordService
 
     public ScoredWord GetCurrentGuess()
     {
-        if (currentGuess is not null)
+        if (_currentGuess is not null)
         {
-            return currentGuess;
+            return _currentGuess;
         }
 
-        string noScore = noMatch; // maybe remove characters that are in inWord from score
+        string noScore = GetNoScoreCharacters();
 
-        foreach (KeyValuePair<int, char> positionalMatch in positionalMatches)
-        {
-            noScore += positionalMatch.Value;
-        }
+        IEnumerable<string> activeWords = GetActiveWords();
 
-        noScore = noScore.ToLower();
+        List<ScoredWord> guessList = activeWords.Select(word => new ScoredWord
+            {
+                Word = word, Score = _scoringService.GetScore(word, noScore)
+            })
+            .OrderByDescending(x => x.Score)
+            .ThenBy(x => x.Word)
+            .ToList();
 
-        IEnumerable<string> activeWords = wordlist.Where(x => x.Length == wordLength)
-                                                  .Where(x => !invalidWordList.Contains(x))
-                                                  .Where(x => x.All(c => validCharacters.Contains(c, System.StringComparison.OrdinalIgnoreCase)));
+        ScoredWord guess = guessList.FirstOrDefault()
+                           ?? new ScoredWord
+                           {
+                               Score = 0, Word = string.Empty
+                           }; // I have no word, maybe throw exception?
 
-        if (GetGuessCount > 0)
-        {
-            string regex = CreateRegexPattern();
-            activeWords = activeWords.Where(x => Regex.IsMatch(x, regex, RegexOptions.IgnoreCase));
-        }
-
-        List<ScoredWord> scoredWordList = activeWords.Select(word => new ScoredWord
-        {
-            Word = word,
-            Score = scoringService.GetScore(word, noScore)
-        }).ToList();
-
-        List<ScoredWord> guessList = scoredWordList.OrderByDescending(x => x.Score).ThenBy(x => x.Word)
-                                         .ToList();
-        ScoredWord guess = guessList.FirstOrDefault() ?? new() { Score = 0, Word = string.Empty }; // I have no word, maybe throw exception?
-
-        currentGuess = guess;
-        return currentGuess;
+        _currentGuess = guess;
+        return _currentGuess;
     }
 
     /// <summary>
@@ -110,22 +101,30 @@ public class DeductWordService
             _ => string.Empty
         };
     }
-
-    private string CreateRegexPattern()
+    
+    private Regex CreateRegexPattern()
     {
-        string regex = inWord.Where(i => !positionalMatches.Any(m => m.Value == i.Value)).Aggregate("^", (current, lookaheadChar) => current + $"(?=.*{lookaheadChar.Value})");
+        string regex = string.Empty;
 
-        for (int i = 0; i < wordLength; i++)
+        foreach (KeyValuePair<int, char> i in _inWord)
         {
-            if (positionalMatches.TryGetValue(i, out char posMatch))
+            if (_positionalMatches.All(m => m.Value != i.Value))
+            {
+                regex += $"(?=.*{i.Value})";
+            }
+        }
+
+        for (int i = 0; i < _wordLength; i++)
+        {
+            if (_positionalMatches.TryGetValue(i, out char posMatch))
             {
                 regex += posMatch;
             }
             else
             {
-                regex += $"[^{noMatch}";
+                regex += $"[^{_noMatch}";
 
-                if (inWord.TryGetValue(i, out char notHereChar))
+                if (_inWord.TryGetValue(i, out char notHereChar))
                 {
                     regex += $"{notHereChar}";
                 }
@@ -134,20 +133,36 @@ public class DeductWordService
             }
         }
 
-        regex += "$";
-        return regex;
+        return new Regex(regex, RegexOptions.IgnoreCase);
     }
+
+    private IEnumerable<string> GetActiveWords()
+    {
+        IEnumerable<string> activeWords = _wordlist.Where(x => x.Length == _wordLength)
+            .Where(x => !_invalidWordList.Contains(x))
+            .Where(x => x.All(c => _validCharacters.Contains(c, StringComparison.OrdinalIgnoreCase)));
+
+        if (GetGuessCount <= 0)
+        {
+            return activeWords;
+        }
+
+        Regex regex = CreateRegexPattern();
+        activeWords = activeWords.Where(x => regex.IsMatch(x));
+
+        return activeWords;
+    } 
 
     private GuessingResult GetCurrentGuessResult(string guessingResult)
     {
-        string guess = currentGuess?.Word
+        string guess = _currentGuess?.Word
                        ?? GetCurrentGuess()
                            .Word;
 
         if (guessingResult == InvalidWordChar.ToString())
         {
-            invalidWordList.Add(guess);
-            currentGuess = null;
+            _invalidWordList.Add(guess);
+            _currentGuess = null;
             return GuessingResult.InvalidWord;
         }
 
@@ -172,6 +187,18 @@ public class DeductWordService
         return GuessingResult.Processed;
     }
 
+    private string GetNoScoreCharacters()
+    {
+        string noScore = string.Empty;
+
+        foreach (KeyValuePair<int, char> positionalMatch in _positionalMatches)
+        {
+            noScore += positionalMatch.Value;
+        }
+
+        return noScore;
+    }
+
     private void ProcessGuessingResult(string guessingResult, string guess)
     {
         GetGuessCount++;
@@ -181,19 +208,19 @@ public class DeductWordService
             switch (guessingResult[i])
             {
                 case PositionalMatchChar:
-                    _ = positionalMatches.TryAdd(i, guess[i]);
+                    _ = _positionalMatches.TryAdd(i, guess[i]);
                     break;
 
                 case InWordChar:
-                    _ = inWord.TryAdd(i, guess[i]);
+                    _ = _inWord.TryAdd(i, guess[i]);
                     break;
 
                 case NoMatchChar:
-                    noMatch += guess[i];
+                    _noMatch += guess[i];
                     break;
             }
         }
 
-        currentGuess = null;
+        _currentGuess = null;
     }
 }

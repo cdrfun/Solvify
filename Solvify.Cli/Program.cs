@@ -8,6 +8,7 @@ namespace Solvify.Cli;
 
 public class Program
 {
+
     public static void Main()
     {
         const int maximumCharacters = 5;
