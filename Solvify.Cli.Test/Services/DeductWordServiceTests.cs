@@ -6,7 +6,7 @@ namespace Solvify.Cli.Test.Services;
 [TestClass]
 public class DeductWordServiceTests
 {
-    string validCharacters6mal5 = "abcdefghijklmnopqrstuvwxyz"; // 6mal5
+    const string ValidCharacters6Mal5 = "abcdefghijklmnopqrstuvwxyz"; // 6mal5
 
     //#region Debug Game
 
@@ -73,7 +73,7 @@ public class DeductWordServiceTests
     public void AddCurrentGuessResult_InvalidWord_ReturnsInvalidWord()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], validCharacters6mal5);
+        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
 
         // Act
         DeductWordService.GuessingResult result = service.AddCurrentGuessResult("x");
@@ -86,7 +86,7 @@ public class DeductWordServiceTests
     public void AddCurrentGuessResult_InvalidLength_ReturnsInvalidLength()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], validCharacters6mal5);
+        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
 
         // Act
         DeductWordService.GuessingResult result = service.AddCurrentGuessResult("appleee");
@@ -99,7 +99,7 @@ public class DeductWordServiceTests
     public void AddCurrentGuessResult_InvalidCharacter_ReturnsInvalidCharacter()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], validCharacters6mal5);
+        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
 
         // Act
         DeductWordService.GuessingResult result = service.AddCurrentGuessResult("ap+le");
@@ -112,7 +112,7 @@ public class DeductWordServiceTests
     public void AddCurrentGuessResult_ValidGuess_ReturnsProcessed()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], validCharacters6mal5);
+        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
 
         // Act
         DeductWordService.GuessingResult result = service.AddCurrentGuessResult("-----");
@@ -129,7 +129,7 @@ public class DeductWordServiceTests
     public void GetCurrentGuess_ReturnsScoredWord()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], validCharacters6mal5);
+        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
 
         // Act
         ScoredWord guess = service.GetCurrentGuess();
@@ -143,7 +143,7 @@ public class DeductWordServiceTests
     public void GetCurrentGuess_UseUpperCaseWords()
     {
         // Arrange
-        DeductWordService service = new(5, ["Apple", "Banana", "Cherry"], validCharacters6mal5);
+        DeductWordService service = new(5, ["Apple", "Banana", "Cherry"], ValidCharacters6Mal5);
 
         // Act
         ScoredWord guess = service.GetCurrentGuess();
@@ -162,7 +162,7 @@ public class DeductWordServiceTests
     public void GetLastGuessingResultMessage_Win_ReturnsWinMessage()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], validCharacters6mal5);
+        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
         _ = service.AddCurrentGuessResult("*****");
 
         // Act
@@ -176,7 +176,7 @@ public class DeductWordServiceTests
     public void GetLastGuessingResultMessage_Processed_ReturnsProcessedMessage()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], validCharacters6mal5);
+        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
         _ = service.AddCurrentGuessResult("-----");
 
         // Act
@@ -190,7 +190,7 @@ public class DeductWordServiceTests
     public void GetLastGuessingResultMessage_InvalidCharacter_ReturnsInvalidCharacterMessage()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], validCharacters6mal5);
+        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
         _ = service.AddCurrentGuessResult("ap+le");
 
         // Act
@@ -204,7 +204,7 @@ public class DeductWordServiceTests
     public void GetLastGuessingResultMessage_InvalidLength_ReturnsInvalidLengthMessage()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], validCharacters6mal5);
+        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
         _ = service.AddCurrentGuessResult("appleee");
 
         // Act
@@ -218,7 +218,7 @@ public class DeductWordServiceTests
     public void GetLastGuessingResultMessage_InvalidWord_ReturnsInvalidWordMessage()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], validCharacters6mal5);
+        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
         _ = service.AddCurrentGuessResult("x");
 
         // Act

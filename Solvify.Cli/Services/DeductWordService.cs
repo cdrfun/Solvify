@@ -22,18 +22,19 @@ public class DeductWordService
     private const char InWordChar = '+';
     private const char NoMatchChar = '-';
     private const char PositionalMatchChar = '*';
+    private readonly List<GuessedCharacter> _guessingResultsDictionary = [];
 
     private readonly List<string> _invalidWordList = [];
-    private readonly Dictionary<int, string> _inWord = [];
-    private readonly Dictionary<int, char> _positionalMatches = [];
-    private readonly string _validCharacters;
+
+    private readonly string _matchingChars = string.Concat(InWordChar, NoMatchChar, PositionalMatchChar);
     private readonly WordScoringService _scoringService;
+    private readonly string _validCharacters;
     private readonly int _wordLength;
     private readonly List<string> _wordlist;
 
     private ScoredWord? _currentGuess;
-    private string _noMatch = string.Empty;
-    private string _inconsistentGuessingResultMessage = string.Empty;
+
+    //private string _inconsistentGuessingResultMessage = string.Empty;
 
     public DeductWordService(int wordLength, List<string> wordlist, string validCharacters)
     {
@@ -42,11 +43,23 @@ public class DeductWordService
         _wordLength = wordLength;
         _wordlist = wordlist;
     }
-    
+
     public int GetGuessCount { get; private set; }
 
     public GuessingResult GetLastGuessingResult { get; private set; } = GuessingResult.Processed;
-    
+
+    private List<(char Character, char GuessingResultCharacter)> PositionalCharacterList => _guessingResultsDictionary
+        .Where(x => x.GuessingResultCharacter == PositionalMatchChar)
+        .Select(x => (x.Character, x.GuessingResultCharacter))
+        .Distinct()
+        .ToList();
+
+    private List<(char Character, char GuessingResultCharacter)> InWordCharacterList => _guessingResultsDictionary
+        .Where(x => x.GuessingResultCharacter == InWordChar)
+        .Select(x => (x.Character, x.GuessingResultCharacter))
+        .Distinct()
+        .ToList();
+
     /// <summary>
     ///     Add and process the result of the current guess
     /// </summary>
@@ -103,39 +116,35 @@ public class DeductWordService
             _ => string.Empty
         };
     }
-    
+
     private Regex CreateRegexPattern()
     {
+        // Create lookahead for all characters in InWord which are not already in PositionalMatches
         string regex = string.Empty;
-
-        // Create lookahead for all characters in inWord which are not already in positionalMatches
-        string lookaheadChars = string.Empty;
-        foreach (KeyValuePair<int, string> pair in _inWord)
-        {
-            if(_positionalMatches.Any(pm => pair.Value.Contains(pm.Value)))
-                lookaheadChars += pair.Value;
-        }
-        regex = lookaheadChars.Aggregate(regex, (current, lookaheadChar) => current + $"(?=.*{lookaheadChar})");
-
+        regex = InWordCharacterList.Where(x => !PositionalCharacterList.Contains(x))
+            .Aggregate(regex, (current, next) => current + $"(?=.*{next.Character})");
 
         // Create match pattern for each character in the word
         for (int i = 0; i < _wordLength; i++)
         {
             // For positional matches, just search for the exact character
-            if (_positionalMatches.TryGetValue(i, out char posMatch))
+            int position = i;
+            char positionalMatch = char.Parse(_guessingResultsDictionary
+                .Where(x => x.Position == position && x.GuessingResultCharacter == PositionalMatchChar)
+                .Select(x => x.Character.ToString()).Distinct(StringComparer.CurrentCultureIgnoreCase).SingleOrDefault() ?? char.MinValue.ToString());
+            if (positionalMatch != char.MinValue)
             {
-                regex += posMatch;
+                regex += positionalMatch;
             }
             else
             {
-                // For all other characters, search for any character not in noMatch...
-                regex += $"[^{_noMatch}";
+                string searchNotFor = string.Empty;
+                searchNotFor = _guessingResultsDictionary.Where(x =>
+                        x.GuessingResultCharacter == NoMatchChar ||
+                        (x.GuessingResultCharacter == InWordChar && x.Position == position)).Distinct()
+                    .Aggregate(searchNotFor, (current, next) => current + next.Character);
 
-                // and which was not found to be in the word, but not at this position
-                if(_inWord.TryGetValue(i, out string? inWord))
-                    regex += $"{inWord}";
-
-                regex += "]";
+                regex += $"[^{searchNotFor}]";
             }
         }
 
@@ -157,7 +166,7 @@ public class DeductWordService
         activeWords = activeWords.Where(x => regex.IsMatch(x));
 
         return activeWords;
-    } 
+    }
 
     private GuessingResult EvaluateGuessingResult(string guessingResult)
     {
@@ -198,11 +207,10 @@ public class DeductWordService
     private string GetNoScoreCharacters()
     {
         string noScore = string.Empty;
-
-        foreach (KeyValuePair<int, char> positionalMatch in _positionalMatches)
-        {
-            noScore += positionalMatch.Value;
-        }
+        noScore = _guessingResultsDictionary
+            .Where(x => x.GuessingResultCharacter == PositionalMatchChar)
+            .Select(x => x.Character)
+            .Aggregate(noScore, (current, next) => current + next);
 
         return noScore;
     }
@@ -214,41 +222,30 @@ public class DeductWordService
         for (int i = 0; i < guessingResult.Length; i++)
         {
             char currentChar = guess[i];
-            switch (guessingResult[i])
+            char charResult = guessingResult[i];
+
+            if (!_matchingChars.Contains(charResult))
             {
-                case PositionalMatchChar:
-                    _ = _positionalMatches.TryAdd(i, currentChar);
-                    break;
-
-                case InWordChar:
-                    
-                    if (_inWord.TryGetValue(i, out string? inWord) && !(inWord?.Contains(currentChar) ?? false))
-                        _ = _inWord[i] += currentChar;
-                    break;
-
-                case NoMatchChar:
-                    _noMatch += currentChar;
-                    break;
+                throw new ArgumentException("Invalid character in guess");
             }
+
+            AddGuessingResult(i, currentChar, charResult);
         }
 
         _currentGuess = null;
         return GuessingResult.Processed;
     }
 
-    //private bool IsGuessingConsistent(string guessingResult, string guess)
-    //{
-    //    var current
+    public void AddGuessingResult(int position, char character, char result)
+    {
+        if (position > _wordLength)
+        {
+            throw new ArgumentException("Position is out of bounds");
+        }
 
-    //    for (int i = 0; i < guessingResult.Length; i++)
-    //    {
-    //        char currentChar = guess[i];
-    //    }
-
-    //    if (_positionalMatches.ContainsValue(guess[i]))
-    //    {
-    //        _inconsistentGuessingResultMessage = $"Character {i} {guess[i]} was marked as positional match before.";
-    //        return GuessingResult.InconsistentGuessingResults;
-    //    }
-    //}
+        _guessingResultsDictionary.Add(new GuessedCharacter
+        {
+            Position = position, Character = character, GuessingResultCharacter = result
+        });
+    }
 }
