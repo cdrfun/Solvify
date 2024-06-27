@@ -10,11 +10,12 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		.editorconfig = .editorconfig
 		.gitattributes = .gitattributes
 		.gitignore = .gitignore
+		.github\workflows\dotnet.yml = .github\workflows\dotnet.yml
 		LICENSE.txt = LICENSE.txt
 		README.md = README.md
 	EndProjectSection
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Solvify.Cli.Test", "Solvify.Cli.Test\Solvify.Cli.Test.csproj", "{E94EBE75-1C33-4B04-BD59-9FC07CBFACFC}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Solvify.Cli.Test", "Solvify.Cli.Test\Solvify.Cli.Test.csproj", "{E94EBE75-1C33-4B04-BD59-9FC07CBFACFC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

@@ -6,7 +6,6 @@
 /// </summary>
 public interface IWordScoringService
 {
-
     /// <summary>
     ///     Calculates the score for a given word based on the frequency of its characters.
     /// </summary>
