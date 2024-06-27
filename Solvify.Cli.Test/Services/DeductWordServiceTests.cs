@@ -6,7 +6,7 @@ namespace Solvify.Cli.Test.Services;
 [TestClass]
 public class DeductWordServiceTests
 {
-    const string ValidCharacters6Mal5 = "abcdefghijklmnopqrstuvwxyz"; // 6mal5
+    private const string ValidCharacters6Mal5 = "abcdefghijklmnopqrstuvwxyz"; // 6mal5
 
     //#region Debug Game
 
@@ -229,5 +229,4 @@ public class DeductWordServiceTests
     }
 
     #endregion GetLastGuessingResultMessage
-
 }
