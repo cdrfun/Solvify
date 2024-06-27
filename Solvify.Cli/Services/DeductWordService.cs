@@ -229,24 +229,24 @@ public class DeductWordService
                 throw new ArgumentException("Invalid character in guess");
             }
 
-            if (currentChar != NoMatchChar && _guessingResultsDictionary.Any(x =>
-                    x.Character == currentChar && x.GuessingResultCharacter == NoMatchChar))
+            if (charResult != NoMatchChar && _guessingResultsDictionary.Any(x =>
+                    x.Character == charResult && x.GuessingResultCharacter == NoMatchChar))
             {
                 InconsistentGuessingResultMessage =
-                    $"Letter '{currentChar}' at position {i} was marked as not in word before.";
+                    $"Letter '{charResult}' at position {i} was marked as not in word before.";
                 return GuessingResult.InconsistentGuessingResults;
             }
 
-            if (currentChar == NoMatchChar && _guessingResultsDictionary.Any(x =>
-                    x.Character == currentChar && x.GuessingResultCharacter != NoMatchChar))
+            if (charResult == NoMatchChar && _guessingResultsDictionary.Any(x =>
+                    x.Character == charResult && x.GuessingResultCharacter != NoMatchChar))
             {
                 InconsistentGuessingResultMessage =
-                    $"Letter '{currentChar}' at position {i} was marked as in word before.";
+                    $"Letter '{charResult}' at position {i} was marked as in word before.";
                 return GuessingResult.InconsistentGuessingResults;
             }
 
-            if (currentChar != PositionalMatchChar && _guessingResultsDictionary.Any(x =>
-                    x.Position == i && x.Character != currentChar && x.GuessingResultCharacter == PositionalMatchChar))
+            if (charResult != PositionalMatchChar && _guessingResultsDictionary.Any(x =>
+                    x.Position == i && x.Character != charResult && x.GuessingResultCharacter == PositionalMatchChar))
             {
                 InconsistentGuessingResultMessage =
                     $"Another character as the current one '{charResult}' was marked as correct at position {i} before.";
