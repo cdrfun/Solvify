@@ -25,7 +25,6 @@ public class DeductWordService
     private readonly List<GuessedCharacter> _guessingResultsDictionary = [];
 
     private readonly List<string> _invalidWordList = [];
-
     private readonly string _matchingChars = string.Concat(InWordChar, NoMatchChar, PositionalMatchChar);
     private readonly WordScoringService _scoringService;
     private readonly string _validCharacters;
@@ -34,8 +33,6 @@ public class DeductWordService
 
     private ScoredWord? _currentGuess;
 
-    //private string _inconsistentGuessingResultMessage = string.Empty;
-
     public DeductWordService(int wordLength, List<string> wordlist, string validCharacters)
     {
         _validCharacters = validCharacters;
@@ -43,6 +40,8 @@ public class DeductWordService
         _wordLength = wordLength;
         _wordlist = wordlist;
     }
+
+    public string InconsistentGuessingResultMessage { get; set; } = string.Empty;
 
     public int GetGuessCount { get; private set; }
 
@@ -131,7 +130,8 @@ public class DeductWordService
             int position = i;
             char positionalMatch = char.Parse(_guessingResultsDictionary
                 .Where(x => x.Position == position && x.GuessingResultCharacter == PositionalMatchChar)
-                .Select(x => x.Character.ToString()).Distinct(StringComparer.CurrentCultureIgnoreCase).SingleOrDefault() ?? char.MinValue.ToString());
+                .Select(x => x.Character.ToString()).Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .SingleOrDefault() ?? char.MinValue.ToString());
             if (positionalMatch != char.MinValue)
             {
                 regex += positionalMatch;
@@ -227,6 +227,30 @@ public class DeductWordService
             if (!_matchingChars.Contains(charResult))
             {
                 throw new ArgumentException("Invalid character in guess");
+            }
+
+            if (currentChar != NoMatchChar && _guessingResultsDictionary.Any(x =>
+                    x.Character == currentChar && x.GuessingResultCharacter == NoMatchChar))
+            {
+                InconsistentGuessingResultMessage =
+                    $"Letter '{currentChar}' at position {i} was marked as not in word before.";
+                return GuessingResult.InconsistentGuessingResults;
+            }
+
+            if (currentChar == NoMatchChar && _guessingResultsDictionary.Any(x =>
+                    x.Character == currentChar && x.GuessingResultCharacter != NoMatchChar))
+            {
+                InconsistentGuessingResultMessage =
+                    $"Letter '{currentChar}' at position {i} was marked as in word before.";
+                return GuessingResult.InconsistentGuessingResults;
+            }
+
+            if (currentChar != PositionalMatchChar && _guessingResultsDictionary.Any(x =>
+                    x.Position == i && x.Character != currentChar && x.GuessingResultCharacter == PositionalMatchChar))
+            {
+                InconsistentGuessingResultMessage =
+                    $"Another character as the current one '{charResult}' was marked as correct at position {i} before.";
+                return GuessingResult.InconsistentGuessingResults;
             }
 
             AddGuessingResult(i, currentChar, charResult);
