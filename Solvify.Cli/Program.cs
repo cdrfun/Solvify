@@ -8,14 +8,15 @@ namespace Solvify.Cli;
 
 public class Program
 {
+
     public static void Main()
     {
         const int maximumCharacters = 5;
 
         List<string> wordList = ReadWordlistFile("wordlist.txt");
 
-        //string validCharacters = "abcdefghijklmnopqrstuvwxyz"; // 6mal5
-        string validCharacters = "abcdefghijklmnopqrstuvwxyzüöäß"; // wördle
+        string validCharacters = "abcdefghijklmnopqrstuvwxyz"; // 6mal5
+        //string validCharacters = "abcdefghijklmnopqrstuvwxyzüöäß"; // wördle
         DeductWordService solver = new(maximumCharacters, wordList, validCharacters);
 
         while (solver.GetLastGuessingResult != DeductWordService.GuessingResult.Win)
