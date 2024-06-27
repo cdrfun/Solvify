@@ -8,7 +8,6 @@ namespace Solvify.Cli;
 
 public class Program
 {
-
     public static void Main()
     {
         const int maximumCharacters = 5;
@@ -22,9 +21,11 @@ public class Program
         while (solver.GetLastGuessingResult != DeductWordService.GuessingResult.Win)
         {
             ScoredWord guess = solver.GetCurrentGuess();
-            Console.WriteLine($"Next guess: {guess.Word} with a score of {guess.Score}");
-            _ = solver.AddCurrentGuessResult(Console.ReadLine() ?? string.Empty);
-            Console.WriteLine(solver.GetLastGuessingResultMessage());
+            Console.WriteLine($"Next guess: {guess.Word} with a score of {guess.Score}. {solver.ActiveWordsOfLastGuess} words are still active.");
+            DeductWordService.GuessingResult result = solver.AddCurrentGuessResult(Console.ReadLine() ?? string.Empty);
+            Console.WriteLine(result == DeductWordService.GuessingResult.InconsistentGuessingResults
+                ? solver.InconsistentGuessingResultMessage
+                : solver.GetLastGuessingResultMessage());
         }
     }
 

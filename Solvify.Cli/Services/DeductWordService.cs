@@ -44,6 +44,7 @@ public class DeductWordService
     public string InconsistentGuessingResultMessage { get; set; } = string.Empty;
 
     public int GetGuessCount { get; private set; }
+    public int ActiveWordsOfLastGuess { get; private set; }
 
     public GuessingResult GetLastGuessingResult { get; private set; } = GuessingResult.Processed;
 
@@ -79,8 +80,9 @@ public class DeductWordService
 
         string noScore = GetNoScoreCharacters();
 
-        IEnumerable<string> activeWords = GetActiveWords();
+        List<string> activeWords = GetActiveWords().ToList();
 
+        ActiveWordsOfLastGuess = activeWords.Count();
         List<ScoredWord> guessList = activeWords.Select(word => new ScoredWord
             {
                 Word = word, Score = _scoringService.GetScore(word, noScore)
