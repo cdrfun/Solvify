@@ -1,4 +1,5 @@
 ﻿using Solvify.Cli.Records;
+using Solvify.Enum;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -8,38 +9,33 @@ namespace Solvify.Cli.Services;
 
 public class DeductWordService
 {
-    public enum GuessingResult
+    private readonly SolvifySettings _solvifySettings;
+    private readonly GameSettings _gameSettings;
+    private char InWordChar => _solvifySettings.InWordChar;
+    private char InvalidWordChar => _solvifySettings.InvalidWordChar;
+    private char NoMatchChar => _solvifySettings.NoMatchChar;
+    private char PositionalMatchChar => _solvifySettings.PositionalMatchChar;
+
+
+    public DeductWordService(SolvifySettings solvifySettings, GameSettings gameSettings, List<string> wordlist)
     {
-        Win,
-        Processed,
-        InvalidCharacter,
-        InvalidLength,
-        InvalidWord,
-        InconsistentGuessingResults
+        _solvifySettings = solvifySettings;
+        _matchingChars = string.Concat(InWordChar, NoMatchChar, PositionalMatchChar);
+        _gameSettings = gameSettings;
+        _wordlist = wordlist;
+        _scoringService = new WordScoringService(wordlist.Where(x => x.Length == _gameSettings.GuessLength), _gameSettings.ValidCharacters);
     }
 
-    private const char InvalidWordChar = 'x';
-    private const char InWordChar = '+';
-    private const char NoMatchChar = '-';
-    private const char PositionalMatchChar = '*';
     private readonly List<GuessedCharacter> _guessingResultsDictionary = [];
 
     private readonly List<string> _invalidWordList = [];
-    private readonly string _matchingChars = string.Concat(InWordChar, NoMatchChar, PositionalMatchChar);
+    private string _matchingChars;
     private readonly WordScoringService _scoringService;
     private readonly string _validCharacters;
     private readonly int _wordLength;
     private readonly List<string> _wordlist;
 
     private ScoredWord? _currentGuess;
-
-    public DeductWordService(int wordLength, List<string> wordlist, string validCharacters)
-    {
-        _validCharacters = validCharacters;
-        _scoringService = new WordScoringService(wordlist.Where(x => x.Length == wordLength), validCharacters);
-        _wordLength = wordLength;
-        _wordlist = wordlist;
-    }
 
     public string InconsistentGuessingResultMessage { get; set; } = string.Empty;
 
@@ -59,6 +55,8 @@ public class DeductWordService
         .Select(x => (x.Character, x.GuessingResultCharacter))
         .Distinct()
         .ToList();
+
+    public string MatchingChars => _matchingChars;
 
     /// <summary>
     ///     Add and process the result of the current guess
@@ -191,7 +189,7 @@ public class DeductWordService
         }
 
         // User entered an invalid character as guessing result
-        if (guessingResult.Any(x => x is not PositionalMatchChar and not InWordChar and not NoMatchChar))
+        if (guessingResult.Any(x => x != PositionalMatchChar && x != InWordChar && x != NoMatchChar))
         {
             return GuessingResult.InvalidCharacter;
         }
