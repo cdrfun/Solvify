@@ -1,5 +1,5 @@
-﻿using Solvify.Cli.Records;
-using Solvify.Enum;
+﻿using Solvify.Cli.Enums;
+using Solvify.Cli.Records;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,41 +9,34 @@ namespace Solvify.Cli.Services;
 
 public class DeductWordService
 {
-    private readonly SolvifySettings _solvifySettings;
-    private readonly GameSettings _gameSettings;
-    private char InWordChar => _solvifySettings.InWordChar;
-    private char InvalidWordChar => _solvifySettings.InvalidWordChar;
-    private char NoMatchChar => _solvifySettings.NoMatchChar;
-    private char PositionalMatchChar => _solvifySettings.PositionalMatchChar;
-
-
-    public DeductWordService(SolvifySettings solvifySettings, GameSettings gameSettings, List<string> wordlist)
-    {
-        _solvifySettings = solvifySettings;
-        _matchingChars = string.Concat(InWordChar, NoMatchChar, PositionalMatchChar);
-        _gameSettings = gameSettings;
-        _wordlist = wordlist;
-        _scoringService = new WordScoringService(wordlist.Where(x => x.Length == _gameSettings.GuessLength), _gameSettings.ValidCharacters);
-    }
-
+    private readonly GameSetting _gameSetting;
     private readonly List<GuessedCharacter> _guessingResultsDictionary = [];
-
     private readonly List<string> _invalidWordList = [];
-    private string _matchingChars;
     private readonly WordScoringService _scoringService;
-    private readonly string _validCharacters;
-    private readonly int _wordLength;
+    private readonly SolvifySetting _solvifySetting;
     private readonly List<string> _wordlist;
-
     private ScoredWord? _currentGuess;
 
-    public string InconsistentGuessingResultMessage { get; set; } = string.Empty;
+    public DeductWordService(SolvifySetting solvifySetting, GameSetting gameSetting, List<string> wordlist)
+    {
+        _solvifySetting = solvifySetting;
+        MatchingChars = string.Concat(InWordChar, NoMatchChar, PositionalMatchChar);
+        _gameSetting = gameSetting;
+        _wordlist = wordlist;
+        _scoringService = new WordScoringService(wordlist.Where(x => x.Length == _gameSetting.GuessLength),
+            _gameSetting.ValidCharacters);
+    }
 
+    private char InWordChar => _solvifySetting.InWordChar;
+    private char InvalidWordChar => _solvifySetting.InvalidWordChar;
+    private char NoMatchChar => _solvifySetting.NoMatchChar;
+    private char PositionalMatchChar => _solvifySetting.PositionalMatchChar;
+    public string InconsistentGuessingResultMessage { get; set; } = string.Empty;
     public int GetGuessCount { get; private set; }
     public int ActiveWordsOfLastGuess { get; private set; }
-
     public GuessingResult GetLastGuessingResult { get; private set; } = GuessingResult.Processed;
-
+    public string MatchingChars { get; }
+    
     private List<(char Character, char GuessingResultCharacter)> PositionalCharacterList => _guessingResultsDictionary
         .Where(x => x.GuessingResultCharacter == PositionalMatchChar)
         .Select(x => (x.Character, x.GuessingResultCharacter))
@@ -55,9 +48,7 @@ public class DeductWordService
         .Select(x => (x.Character, x.GuessingResultCharacter))
         .Distinct()
         .ToList();
-
-    public string MatchingChars => _matchingChars;
-
+    
     /// <summary>
     ///     Add and process the result of the current guess
     /// </summary>
@@ -124,7 +115,7 @@ public class DeductWordService
             .Aggregate(regex, (current, next) => current + $"(?=.*{next.Character})");
 
         // Create match pattern for each character in the word
-        for (int i = 0; i < _wordLength; i++)
+        for (int i = 0; i < _gameSetting.GuessLength; i++)
         {
             // For positional matches, just search for the exact character
             int position = i;
@@ -153,9 +144,9 @@ public class DeductWordService
 
     private IEnumerable<string> GetActiveWords()
     {
-        IEnumerable<string> activeWords = _wordlist.Where(x => x.Length == _wordLength)
+        IEnumerable<string> activeWords = _wordlist.Where(x => x.Length == _gameSetting.GuessLength)
             .Where(x => !_invalidWordList.Contains(x))
-            .Where(x => x.All(c => _validCharacters.Contains(c, StringComparison.OrdinalIgnoreCase)));
+            .Where(x => x.All(c => _gameSetting.ValidCharacters.Contains(c, StringComparison.OrdinalIgnoreCase)));
 
         if (GetGuessCount <= 0)
         {
@@ -224,7 +215,7 @@ public class DeductWordService
             char currentChar = guess[i];
             char charResult = guessingResult[i];
 
-            if (!_matchingChars.Contains(charResult))
+            if (!MatchingChars.Contains(charResult))
             {
                 throw new ArgumentException("Invalid character in guess");
             }
@@ -262,7 +253,7 @@ public class DeductWordService
 
     public void AddGuessingResult(int position, char character, char result)
     {
-        if (position > _wordLength)
+        if (position > _gameSetting.GuessLength)
         {
             throw new ArgumentException("Position is out of bounds");
         }

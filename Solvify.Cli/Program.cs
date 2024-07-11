@@ -1,8 +1,11 @@
-﻿using Solvify.Cli.Records;
+﻿using Solvify.Cli.Enums;
+using Solvify.Cli.Records;
 using Solvify.Cli.Services;
+using Spectre.Console;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 
 namespace Solvify.Cli;
 
@@ -10,20 +13,53 @@ public class Program
 {
     public static void Main()
     {
-        const int maximumCharacters = 5;
+        MenuLoop(ReadWordlistFile("wordlist.txt"));
+    }
 
-        List<string> wordList = ReadWordlistFile("wordlist.txt");
+    private static void MenuLoop(List<string> wordList)
+    {
+        SolvifySetting defaultSetting = new();
+        string selected = string.Empty;
 
-        string validCharacters = "abcdefghijklmnopqrstuvwxyz"; // 6mal5
-        //string validCharacters = "abcdefghijklmnopqrstuvwxyzüöäß"; // wördle
-        DeductWordService solver = new(maximumCharacters, wordList, validCharacters);
+        List<string> choices = defaultSetting.GameSettings.Select(x => x.Name).ToList();
+        choices.Add("Exit");
 
-        while (solver.GetLastGuessingResult != DeductWordService.GuessingResult.Win)
+        while (selected != "Exit")
+        {
+            selected = AnsiConsole.Prompt(
+                new SelectionPrompt<string>()
+                    .Title("Select Game Setting")
+                    .PageSize(10)
+                    .AddChoices(choices)
+            );
+
+            if (selected == "Exit")
+            {
+                continue;
+            }
+
+            GameSetting? selectedGame = defaultSetting.GameSettings.SingleOrDefault(x => x.Name == selected);
+            if (selectedGame != null)
+            {
+                DeductWordService solver = new(defaultSetting, selectedGame, wordList);
+                GameLoop(solver);
+            }
+            else
+            {
+                Console.WriteLine("Invalid game setting selected.");
+            }
+        }
+    }
+
+    private static void GameLoop(DeductWordService solver)
+    {
+        while (solver.GetLastGuessingResult != GuessingResult.Win)
         {
             ScoredWord guess = solver.GetCurrentGuess();
-            Console.WriteLine($"Next guess: {guess.Word} with a score of {guess.Score}. {solver.ActiveWordsOfLastGuess} words are still active.");
-            DeductWordService.GuessingResult result = solver.AddCurrentGuessResult(Console.ReadLine() ?? string.Empty);
-            Console.WriteLine(result == DeductWordService.GuessingResult.InconsistentGuessingResults
+            Console.WriteLine(
+                $"Next guess: {guess.Word} with a score of {guess.Score}. {solver.ActiveWordsOfLastGuess} words are still active.");
+            GuessingResult result = solver.AddCurrentGuessResult(Console.ReadLine() ?? string.Empty);
+            Console.WriteLine(result == GuessingResult.InconsistentGuessingResults
                 ? solver.InconsistentGuessingResultMessage
                 : solver.GetLastGuessingResultMessage());
         }

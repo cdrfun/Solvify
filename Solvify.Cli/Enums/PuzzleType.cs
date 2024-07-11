@@ -1,4 +1,4 @@
-﻿namespace Solvify.Enum;
+﻿namespace Solvify.Cli.Enums;
 
 public enum PuzzleType
 {

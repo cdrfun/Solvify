@@ -1,12 +1,17 @@
+using Solvify.Cli.Enums;
 using Solvify.Cli.Records;
 using Solvify.Cli.Services;
+
 
 namespace Solvify.Cli.Test.Services;
 
 [TestClass]
 public class DeductWordServiceTests
 {
-    private const string ValidCharacters6Mal5 = "abcdefghijklmnopqrstuvwxyz"; // 6mal5
+    private readonly List<string> _simpleWordlist = ["apple", "banana", "cherry"];
+    private readonly List<string> _simpleWordlistUpperCase = ["Apple", "Banana", "Cherry"];
+
+    private readonly SolvifySetting _defaultSetting = new();
 
     //#region Debug Game
 
@@ -73,52 +78,54 @@ public class DeductWordServiceTests
     public void AddCurrentGuessResult_InvalidWord_ReturnsInvalidWord()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
+        //DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlist);
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlist);
+
 
         // Act
-        DeductWordService.GuessingResult result = service.AddCurrentGuessResult("x");
+        GuessingResult result = service.AddCurrentGuessResult("x");
 
         // Assert
-        Assert.AreEqual(DeductWordService.GuessingResult.InvalidWord, result);
+        Assert.AreEqual(GuessingResult.InvalidWord, result);
     }
 
     [TestMethod]
     public void AddCurrentGuessResult_InvalidLength_ReturnsInvalidLength()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlist);
 
         // Act
-        DeductWordService.GuessingResult result = service.AddCurrentGuessResult("appleee");
+        GuessingResult result = service.AddCurrentGuessResult("appleee");
 
         // Assert
-        Assert.AreEqual(DeductWordService.GuessingResult.InvalidLength, result);
+        Assert.AreEqual(GuessingResult.InvalidLength, result);
     }
 
     [TestMethod]
     public void AddCurrentGuessResult_InvalidCharacter_ReturnsInvalidCharacter()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlist);
 
         // Act
-        DeductWordService.GuessingResult result = service.AddCurrentGuessResult("ap+le");
+        GuessingResult result = service.AddCurrentGuessResult("ap+le");
 
         // Assert
-        Assert.AreEqual(DeductWordService.GuessingResult.InvalidCharacter, result);
+        Assert.AreEqual(GuessingResult.InvalidCharacter, result);
     }
 
     [TestMethod]
     public void AddCurrentGuessResult_ValidGuess_ReturnsProcessed()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlist);
 
         // Act
-        DeductWordService.GuessingResult result = service.AddCurrentGuessResult("-----");
+        GuessingResult result = service.AddCurrentGuessResult("-----");
 
         // Assert
-        Assert.AreEqual(DeductWordService.GuessingResult.Processed, result);
+        Assert.AreEqual(GuessingResult.Processed, result);
     }
 
     #endregion AddCurrentGuessResult
@@ -129,7 +136,7 @@ public class DeductWordServiceTests
     public void GetCurrentGuess_ReturnsScoredWord()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlist);
 
         // Act
         ScoredWord guess = service.GetCurrentGuess();
@@ -143,7 +150,7 @@ public class DeductWordServiceTests
     public void GetCurrentGuess_UseUpperCaseWords()
     {
         // Arrange
-        DeductWordService service = new(5, ["Apple", "Banana", "Cherry"], ValidCharacters6Mal5);
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlistUpperCase);
 
         // Act
         ScoredWord guess = service.GetCurrentGuess();
@@ -162,7 +169,7 @@ public class DeductWordServiceTests
     public void GetLastGuessingResultMessage_Win_ReturnsWinMessage()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlist);
         _ = service.AddCurrentGuessResult("*****");
 
         // Act
@@ -176,7 +183,7 @@ public class DeductWordServiceTests
     public void GetLastGuessingResultMessage_Processed_ReturnsProcessedMessage()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlist);
         _ = service.AddCurrentGuessResult("-----");
 
         // Act
@@ -190,7 +197,7 @@ public class DeductWordServiceTests
     public void GetLastGuessingResultMessage_InvalidCharacter_ReturnsInvalidCharacterMessage()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlist);
         _ = service.AddCurrentGuessResult("ap+le");
 
         // Act
@@ -204,7 +211,7 @@ public class DeductWordServiceTests
     public void GetLastGuessingResultMessage_InvalidLength_ReturnsInvalidLengthMessage()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlist);
         _ = service.AddCurrentGuessResult("appleee");
 
         // Act
@@ -218,7 +225,7 @@ public class DeductWordServiceTests
     public void GetLastGuessingResultMessage_InvalidWord_ReturnsInvalidWordMessage()
     {
         // Arrange
-        DeductWordService service = new(5, ["apple", "banana", "cherry"], ValidCharacters6Mal5);
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), _simpleWordlist);
         _ = service.AddCurrentGuessResult("x");
 
         // Act
