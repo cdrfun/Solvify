@@ -188,7 +188,7 @@ public class DeductWordServiceTests
         // Assert
         Assert.IsNotNull(guess);
         Assert.IsInstanceOfType(guess, typeof(ScoredWord));
-        Assert.IsTrue(guess.Word.ToLower() == "oedem");
+        Assert.IsTrue(guess.Word == "Oedem");
     }
 
     [TestMethod]
@@ -203,7 +203,7 @@ public class DeductWordServiceTests
         // Assert
         Assert.IsNotNull(guess);
         Assert.IsInstanceOfType(guess, typeof(ScoredWord));
-        Assert.IsTrue(guess.Word.ToLower() == "oeaem");
+        Assert.IsTrue(guess.Word == "Oeaem");
     }
 
     #endregion GetCurrentGuess
