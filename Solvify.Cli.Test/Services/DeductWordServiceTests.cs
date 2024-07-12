@@ -161,6 +161,51 @@ public class DeductWordServiceTests
         Assert.IsFalse(guess.Word == string.Empty);
     }
 
+    [TestMethod]
+    public void GetCurrentGuess_UseSubstitutionWords()
+    {
+        // Arrange
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), ["bˆse"]);
+
+        // Act
+        ScoredWord guess = service.GetCurrentGuess();
+
+        // Assert
+        Assert.IsNotNull(guess);
+        Assert.IsInstanceOfType(guess, typeof(ScoredWord));
+        Assert.IsTrue(guess.Word == "boese");
+    }
+
+    [TestMethod]
+    public void GetCurrentGuess_UseSubstitutionWordsUpperCase()
+    {
+        // Arrange
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), ["÷dem"]);
+
+        // Act
+        ScoredWord guess = service.GetCurrentGuess();
+
+        // Assert
+        Assert.IsNotNull(guess);
+        Assert.IsInstanceOfType(guess, typeof(ScoredWord));
+        Assert.IsTrue(guess.Word.ToLower() == "oedem");
+    }
+
+    [TestMethod]
+    public void GetCurrentGuess_UseSubstitutionWordsMultiple()
+    {
+        // Arrange
+        DeductWordService service = new(_defaultSetting, _defaultSetting.GameSettings.Single(x => x.Name == "6mal5"), ["÷‰m"]);
+
+        // Act
+        ScoredWord guess = service.GetCurrentGuess();
+
+        // Assert
+        Assert.IsNotNull(guess);
+        Assert.IsInstanceOfType(guess, typeof(ScoredWord));
+        Assert.IsTrue(guess.Word.ToLower() == "oeaem");
+    }
+
     #endregion GetCurrentGuess
 
     #region GetLastGuessingResultMessage

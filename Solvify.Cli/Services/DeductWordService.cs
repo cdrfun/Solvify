@@ -22,8 +22,9 @@ public class DeductWordService
         _solvifySetting = solvifySetting;
         MatchingChars = string.Concat(InWordChar, NoMatchChar, PositionalMatchChar);
         _gameSetting = gameSetting;
-        _wordlist = wordlist;
-        _scoringService = new WordScoringService(wordlist.Where(x => x.Length == _gameSetting.GuessLength),
+        _wordlist = GetPreparedWordlist(wordlist);
+
+        _scoringService = new WordScoringService(_wordlist.Where(x => x.Length == _gameSetting.GuessLength),
             _gameSetting.ValidCharacters);
     }
 
@@ -36,7 +37,7 @@ public class DeductWordService
     public int ActiveWordsOfLastGuess { get; private set; }
     public GuessingResult GetLastGuessingResult { get; private set; } = GuessingResult.Processed;
     public string MatchingChars { get; }
-    
+
     private List<(char Character, char GuessingResultCharacter)> PositionalCharacterList => _guessingResultsDictionary
         .Where(x => x.GuessingResultCharacter == PositionalMatchChar)
         .Select(x => (x.Character, x.GuessingResultCharacter))
@@ -48,7 +49,33 @@ public class DeductWordService
         .Select(x => (x.Character, x.GuessingResultCharacter))
         .Distinct()
         .ToList();
-    
+
+    private List<string> GetPreparedWordlist(List<string> wordlist)
+    {
+        IEnumerable<string> preparedWords;
+        if (_gameSetting.SubstitutionList.Count != 0)
+        {
+            Regex regex = new(string.Join("|", _gameSetting.SubstitutionList.Keys));
+            preparedWords = wordlist.Select(text =>
+            {
+                string newText = text;
+                while (regex.IsMatch(newText))
+                {
+                    newText = regex.Replace(newText, match => _gameSetting.SubstitutionList[match.Value]);
+                }
+                return newText;
+            });
+        }
+        else
+        {
+            preparedWords = wordlist;
+        }
+
+        return preparedWords.Where(x => x.Length == _gameSetting.GuessLength)
+            .Where(x => x.All(c => _gameSetting.ValidCharacters.Contains(c, StringComparison.OrdinalIgnoreCase)))
+            .ToList();
+    }
+
     /// <summary>
     ///     Add and process the result of the current guess
     /// </summary>
@@ -144,8 +171,7 @@ public class DeductWordService
 
     private IEnumerable<string> GetActiveWords()
     {
-        IEnumerable<string> activeWords = _wordlist.Where(x => x.Length == _gameSetting.GuessLength)
-            .Where(x => !_invalidWordList.Contains(x))
+        IEnumerable<string> activeWords = _wordlist.Where(x => !_invalidWordList.Contains(x))
             .Where(x => x.All(c => _gameSetting.ValidCharacters.Contains(c, StringComparison.OrdinalIgnoreCase)));
 
         if (GetGuessCount <= 0)

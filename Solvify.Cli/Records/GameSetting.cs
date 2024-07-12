@@ -14,6 +14,7 @@ public record GameSetting
     public required string ValidCharacters { get; init; }
     public required int MaximumTries { get; init; }
     public required int GuessLength { get; init; }
+    public Dictionary<string, string> SubstitutionList { get; init; } = [];
 
     public override string ToString()
     {

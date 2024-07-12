@@ -10,16 +10,27 @@ public record SolvifySetting
         new GameSetting
         {
             Name = "6mal5",
+            WebsiteUrl = new("https://6mal5.com/"),
             PuzzleType = PuzzleType.DeductWord,
             Language = Language.German,
             ValidCharacters = "abcdefghijklmnopqrstuvwxyz",
             MaximumTries = 6,
-            GuessLength = 5
+            GuessLength = 5,
+            SubstitutionList = new Dictionary<string, string>
+            {
+                {"ä", "ae"},
+                {"ö", "oe"},
+                {"ü", "ue"},
+                {"Ä", "Ae"},
+                {"Ö", "Oe"},
+                {"Ü", "Ue"}
+            }
         },
 
         new GameSetting
         {
             Name = "wördle",
+            WebsiteUrl = new("https://www.wördle.de/"),
             PuzzleType = PuzzleType.DeductWord,
             Language = Language.German,
             ValidCharacters = "abcdefghijklmnopqrstuvwxyzüöäß",
