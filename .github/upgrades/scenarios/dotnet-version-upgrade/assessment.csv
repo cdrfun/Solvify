@@ -1,3 +1,0 @@
-Issue ID,Description,State,Severity,Story Points,Project Path,Location Kind,Path,Line,Column,Incident ID,Help Link,Assembly Name,Assembly Version,Assembly Public Key,Snippet
-Project.0002,Project's target framework(s) needs to be changed,Active,Mandatory,1,Solvify.Cli\Solvify.Cli.csproj,File,Solvify.Cli\Solvify.Cli.csproj,,,,,,,,Current target framework: net8.0 Recommended target framework: net10.0
-Project.0002,Project's target framework(s) needs to be changed,Active,Mandatory,1,Solvify.Cli.Test\Solvify.Cli.Test.csproj,File,Solvify.Cli.Test\Solvify.Cli.Test.csproj,,,,,,,,Current target framework: net8.0 Recommended target framework: net10.0
